@@ -3,6 +3,9 @@
 /// Courier'ın geçmişi) kaybolmasın diye fromJson hem yeni Türkçe hem eski İngilizce
 /// anahtarları okuyabiliyor. toJson ise sadece yeni Türkçe anahtarları yazıyor —
 /// yani bir kayıt her güncellendiğinde otomatik olarak yeni formata geçiyor.
+///
+/// Tüm zorunlu alanlarda '' / 0 gibi güvenli varsayılanlar var — eski veride
+/// beklenmedik şekilde eksik bir alan olsa bile uygulama çökmesin diye.
 
 class HistoryItem {
   String cat; // örn. "Motor", "Fren Sistemi", "Alt Takım / Rot"
@@ -25,10 +28,10 @@ class HistoryItem {
       };
 
   factory HistoryItem.fromJson(Map<String, dynamic> json) => HistoryItem(
-        cat: json['kategori'] ?? json['cat'] ?? '',
-        sub: json['aciklama'] ?? json['sub'] ?? '',
-        km: json['km'] ?? 0,
-        date: json['tarih'] ?? json['date'] ?? '—',
+        cat: (json['kategori'] ?? json['cat'] ?? '').toString(),
+        sub: (json['aciklama'] ?? json['sub'] ?? '').toString(),
+        km: (json['km'] as num?)?.toInt() ?? 0,
+        date: (json['tarih'] ?? json['date'] ?? '—').toString(),
       );
 }
 
@@ -39,7 +42,7 @@ class MaintenanceRecord {
 
   Map<String, dynamic> toJson() => {'sonKm': lastKm};
   factory MaintenanceRecord.fromJson(Map<String, dynamic> json) =>
-      MaintenanceRecord(lastKm: json['sonKm'] ?? json['lastKm'] ?? 0);
+      MaintenanceRecord(lastKm: (json['sonKm'] ?? json['lastKm'] as num?)?.toInt() ?? 0);
 }
 
 class Vehicle {
@@ -88,26 +91,51 @@ class Vehicle {
         'gecmis': history.map((h) => h.toJson()).toList(),
       };
 
-  factory Vehicle.fromJson(Map<String, dynamic> json) => Vehicle(
-        id: json['id'],
-        name: json['isim'] ?? json['name'],
-        plate: json['plaka'] ?? json['plate'],
-        type: json['tip'] ?? json['type'],
-        km: json['km'] ?? 0,
-        unit: json['birim'] ?? json['unit'] ?? 'km',
-        modelYear: json['modelYili'] ?? json['modelYear'],
-        age: json['yas'] ?? json['age'] ?? 0,
-        lastInspectionDate: json['sonMuayeneTarihi'] ?? json['lastInspectionDate'],
-        inspectionInterval: json['muayeneAraligi'] ?? json['inspectionInterval'],
-        maintenanceRecords:
-            (json['bakimKayitlari'] ?? json['maintenanceRecords'] as Map?)?.map(
-                  (k, v) => MapEntry(
-                      k as String, MaintenanceRecord.fromJson(Map<String, dynamic>.from(v))),
-                ) ??
-                {},
-        history: ((json['gecmis'] ?? json['history']) as List?)
-                ?.map((h) => HistoryItem.fromJson(Map<String, dynamic>.from(h)))
-                .toList() ??
-            [],
-      );
+  factory Vehicle.fromJson(Map<String, dynamic> json) {
+    Map<String, MaintenanceRecord> parsedRecords = {};
+    try {
+      final rawRecords = json['bakimKayitlari'] ?? json['maintenanceRecords'];
+      if (rawRecords is Map) {
+        rawRecords.forEach((k, v) {
+          if (v is Map) {
+            parsedRecords[k.toString()] =
+                MaintenanceRecord.fromJson(Map<String, dynamic>.from(v));
+          }
+        });
+      }
+    } catch (_) {
+      // Bozuk/eksik veri varsa boş bırak, uygulama çökmesin
+    }
+
+    List<HistoryItem> parsedHistory = [];
+    try {
+      final rawHistory = json['gecmis'] ?? json['history'];
+      if (rawHistory is List) {
+        for (final h in rawHistory) {
+          if (h is Map) {
+            parsedHistory.add(HistoryItem.fromJson(Map<String, dynamic>.from(h)));
+          }
+        }
+      }
+    } catch (_) {
+      // Bozuk/eksik veri varsa boş bırak, uygulama çökmesin
+    }
+
+    return Vehicle(
+      id: (json['id'] ?? '').toString(),
+      name: (json['isim'] ?? json['name'] ?? '').toString(),
+      plate: (json['plaka'] ?? json['plate'] ?? '').toString(),
+      type: (json['tip'] ?? json['type'] ?? 'Diğer').toString(),
+      km: (json['km'] as num?)?.toInt() ?? 0,
+      unit: (json['birim'] ?? json['unit'] ?? 'km').toString(),
+      modelYear: (json['modelYili'] ?? json['modelYear'] as num?)?.toInt(),
+      age: (json['yas'] ?? json['age'] as num?)?.toInt() ?? 0,
+      lastInspectionDate:
+          (json['sonMuayeneTarihi'] ?? json['lastInspectionDate'])?.toString(),
+      inspectionInterval:
+          (json['muayeneAraligi'] ?? json['inspectionInterval'])?.toString(),
+      maintenanceRecords: parsedRecords,
+      history: parsedHistory,
+    );
+  }
 }
