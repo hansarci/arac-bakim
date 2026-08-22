@@ -35,44 +35,63 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
 
   Future<void> _markInspectionDone() async {
     final todayStr = todayTrDate();
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showModalBottomSheet<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.bgElev,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(18),
-          side: const BorderSide(color: AppColors.line),
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 30),
+        decoration: const BoxDecoration(
+          color: AppColors.bgElev,
+          border: Border(top: BorderSide(color: AppColors.line)),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
-        content: Text(
-          '${v.name} için bugün ($todayStr) muayene yaptırdığını onaylıyor musun?',
-          style: const TextStyle(color: AppColors.text, fontSize: 14),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 36,
+              height: 4,
+              margin: const EdgeInsets.only(bottom: 18),
+              decoration: BoxDecoration(
+                color: AppColors.line,
+                borderRadius: BorderRadius.circular(100),
+              ),
+            ),
+            Text(
+              '${v.name} için bugün ($todayStr) muayene yaptırdığını onaylıyor musun?',
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: AppColors.text, fontSize: 14, height: 1.4),
+            ),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.pop(ctx, false),
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: AppColors.line),
+                      foregroundColor: AppColors.textMuted,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                    child: const Text('Vazgeç'),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(ctx, true),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.orange,
+                      foregroundColor: const Color(0xFF14201A),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                    child: const Text('Onayla', style: TextStyle(fontWeight: FontWeight.w700)),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
-        actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-        actions: [
-          Expanded(
-            child: OutlinedButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: AppColors.line),
-                foregroundColor: AppColors.textMuted,
-                padding: const EdgeInsets.symmetric(vertical: 12),
-              ),
-              child: const Text('Vazgeç'),
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: ElevatedButton(
-              onPressed: () => Navigator.pop(ctx, true),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.orange,
-                foregroundColor: const Color(0xFF14201A),
-                padding: const EdgeInsets.symmetric(vertical: 12),
-              ),
-              child: const Text('Onayla', style: TextStyle(fontWeight: FontWeight.w700)),
-            ),
-          ),
-        ],
       ),
     );
 
