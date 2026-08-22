@@ -28,6 +28,11 @@ jobs:
       - name: local.properties oluştur (flutter.sdk yolu için)
         run: echo "flutter.sdk=$FLUTTER_ROOT" > android/local.properties
 
+      - name: Gradle 8.3'ü kur (sunucudaki varsayılan sürümle uyumsuzluğu önlemek için)
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: 8.3
+
       - name: Gradle wrapper dosyalarını üret
         run: |
           cd android
