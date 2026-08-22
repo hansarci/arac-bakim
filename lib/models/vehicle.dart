@@ -1,3 +1,9 @@
+/// Firestore'a yazarken artık Türkçe alan adları kullanılıyor (Orman Muhasebe'deki
+/// gibi). Ama daha önce İngilizce alan adlarıyla kaydedilmiş veriler (örn. Ford
+/// Courier'ın geçmişi) kaybolmasın diye fromJson hem yeni Türkçe hem eski İngilizce
+/// anahtarları okuyabiliyor. toJson ise sadece yeni Türkçe anahtarları yazıyor —
+/// yani bir kayıt her güncellendiğinde otomatik olarak yeni formata geçiyor.
+
 class HistoryItem {
   String cat; // örn. "Motor", "Fren Sistemi", "Alt Takım / Rot"
   String sub; // yapılan işlem(ler), " / " ile ayrılmış
@@ -12,17 +18,17 @@ class HistoryItem {
   });
 
   Map<String, dynamic> toJson() => {
-        'cat': cat,
-        'sub': sub,
+        'kategori': cat,
+        'aciklama': sub,
         'km': km,
-        'date': date,
+        'tarih': date,
       };
 
   factory HistoryItem.fromJson(Map<String, dynamic> json) => HistoryItem(
-        cat: json['cat'] ?? '',
-        sub: json['sub'] ?? '',
+        cat: json['kategori'] ?? json['cat'] ?? '',
+        sub: json['aciklama'] ?? json['sub'] ?? '',
         km: json['km'] ?? 0,
-        date: json['date'] ?? '—',
+        date: json['tarih'] ?? json['date'] ?? '—',
       );
 }
 
@@ -31,9 +37,9 @@ class MaintenanceRecord {
   int lastKm;
   MaintenanceRecord({required this.lastKm});
 
-  Map<String, dynamic> toJson() => {'lastKm': lastKm};
+  Map<String, dynamic> toJson() => {'sonKm': lastKm};
   factory MaintenanceRecord.fromJson(Map<String, dynamic> json) =>
-      MaintenanceRecord(lastKm: json['lastKm'] ?? 0);
+      MaintenanceRecord(lastKm: json['sonKm'] ?? json['lastKm'] ?? 0);
 }
 
 class Vehicle {
@@ -68,38 +74,39 @@ class Vehicle {
 
   Map<String, dynamic> toJson() => {
         'id': id,
-        'name': name,
-        'plate': plate,
-        'type': type,
+        'isim': name,
+        'plaka': plate,
+        'tip': type,
         'km': km,
-        'unit': unit,
-        'modelYear': modelYear,
-        'age': age,
-        'lastInspectionDate': lastInspectionDate,
-        'inspectionInterval': inspectionInterval,
-        'maintenanceRecords':
+        'birim': unit,
+        'modelYili': modelYear,
+        'yas': age,
+        'sonMuayeneTarihi': lastInspectionDate,
+        'muayeneAraligi': inspectionInterval,
+        'bakimKayitlari':
             maintenanceRecords.map((k, v) => MapEntry(k, v.toJson())),
-        'history': history.map((h) => h.toJson()).toList(),
+        'gecmis': history.map((h) => h.toJson()).toList(),
       };
 
   factory Vehicle.fromJson(Map<String, dynamic> json) => Vehicle(
         id: json['id'],
-        name: json['name'],
-        plate: json['plate'],
-        type: json['type'],
+        name: json['isim'] ?? json['name'],
+        plate: json['plaka'] ?? json['plate'],
+        type: json['tip'] ?? json['type'],
         km: json['km'] ?? 0,
-        unit: json['unit'] ?? 'km',
-        modelYear: json['modelYear'],
-        age: json['age'] ?? 0,
-        lastInspectionDate: json['lastInspectionDate'],
-        inspectionInterval: json['inspectionInterval'],
-        maintenanceRecords: (json['maintenanceRecords'] as Map?)?.map(
-              (k, v) => MapEntry(
-                  k as String, MaintenanceRecord.fromJson(v)),
-            ) ??
-            {},
-        history: (json['history'] as List?)
-                ?.map((h) => HistoryItem.fromJson(h))
+        unit: json['birim'] ?? json['unit'] ?? 'km',
+        modelYear: json['modelYili'] ?? json['modelYear'],
+        age: json['yas'] ?? json['age'] ?? 0,
+        lastInspectionDate: json['sonMuayeneTarihi'] ?? json['lastInspectionDate'],
+        inspectionInterval: json['muayeneAraligi'] ?? json['inspectionInterval'],
+        maintenanceRecords:
+            (json['bakimKayitlari'] ?? json['maintenanceRecords'] as Map?)?.map(
+                  (k, v) => MapEntry(
+                      k as String, MaintenanceRecord.fromJson(Map<String, dynamic>.from(v))),
+                ) ??
+                {},
+        history: ((json['gecmis'] ?? json['history']) as List?)
+                ?.map((h) => HistoryItem.fromJson(Map<String, dynamic>.from(h)))
                 .toList() ??
             [],
       );
