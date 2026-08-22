@@ -27,7 +27,14 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
   }
 
   Future<void> _load() async {
-    final list = await _storage.loadVehicles();
+    List<Vehicle> list = [];
+    try {
+      list = await _storage.loadVehicles();
+    } catch (e) {
+      // Veri okunurken bir sorun olsa bile uygulama sonsuza kadar yüklenir
+      // görünmesin — boş listeyle açılsın, sorun devam ederse görünür olsun.
+      debugPrint('Araçlar yüklenirken hata: $e');
+    }
     setState(() {
       vehicles = list;
       _loading = false;
