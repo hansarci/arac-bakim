@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "107369697109",
+    "project_id": "arac-bakim-3fc6f",
+    "storage_bucket": "arac-bakim-3fc6f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:107369697109:android:7dedd59c66721d51f7e9dc",
+        "android_client_info": {
+          "package_name": "com.turhan.aracbakim"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAhE2TZ7iLtq-RqgD_lODYkkbOFZbhi7l8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
