@@ -25,6 +25,9 @@ jobs:
           flutter-version: '3.24.0'
           channel: 'stable'
 
+      - name: local.properties oluştur (flutter.sdk yolu için)
+        run: echo "flutter.sdk=$FLUTTER_ROOT" > android/local.properties
+
       - name: Gradle wrapper dosyalarını üret
         run: |
           cd android
