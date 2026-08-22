@@ -32,12 +32,16 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
       vehicles = list;
       _loading = false;
     });
-    await NotificationService.instance.checkAndNotify(vehicles);
+    for (final v in vehicles) {
+      await NotificationService.instance.scheduleInspectionReminders(v);
+    }
   }
 
   void _persist() {
     _storage.saveVehicles(vehicles); // fire-and-forget — internet gerekmez
-    NotificationService.instance.checkAndNotify(vehicles);
+    for (final v in vehicles) {
+      NotificationService.instance.scheduleInspectionReminders(v);
+    }
   }
 
   Future<void> _openAddVehicle() async {
