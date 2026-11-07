@@ -8,7 +8,6 @@ import '../widgets/add_action_sheet.dart';
 
 class VehicleDetailScreen extends StatefulWidget {
   final Vehicle vehicle;
-
   /// Detay ekranında veri değiştiğinde (işlem ekleme, muayene) hemen çağrılır;
   /// kayıt geri tuşunu beklemeden yapılsın diye.
   final VoidCallback? onChanged;
@@ -100,7 +99,7 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
       ),
     );
 
-       if (confirmed == true) {
+    if (confirmed == true) {
       setState(() => v.lastInspectionDate = todayStr);
       widget.onChanged?.call();
     }
