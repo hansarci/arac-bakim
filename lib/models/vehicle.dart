@@ -56,6 +56,8 @@ class Vehicle {
   int age; // yıl yaşında (model yılından hesaplanır)
   String? lastInspectionDate; // GG/AA/YYYY
   String? inspectionInterval; // "1 Yıl", "2 Yıl", "3 Yıl"
+  String? trafficInsuranceDate; // Trafik sigortası bitiş tarihi, GG/AA/YYYY
+  String? kaskoDate; // Kasko bitiş tarihi, GG/AA/YYYY
   Map<String, MaintenanceRecord> maintenanceRecords;
   List<HistoryItem> history;
 
@@ -70,6 +72,8 @@ class Vehicle {
     this.age = 0,
     this.lastInspectionDate,
     this.inspectionInterval,
+    this.trafficInsuranceDate,
+    this.kaskoDate,
     Map<String, MaintenanceRecord>? maintenanceRecords,
     List<HistoryItem>? history,
   })  : maintenanceRecords = maintenanceRecords ?? {},
@@ -86,6 +90,8 @@ class Vehicle {
         'yas': age,
         'sonMuayeneTarihi': lastInspectionDate,
         'muayeneAraligi': inspectionInterval,
+        'trafikSigortasiBitis': trafficInsuranceDate,
+        'kaskoBitis': kaskoDate,
         'bakimKayitlari':
             maintenanceRecords.map((k, v) => MapEntry(k, v.toJson())),
         'gecmis': history.map((h) => h.toJson()).toList(),
@@ -134,6 +140,8 @@ class Vehicle {
           (json['sonMuayeneTarihi'] ?? json['lastInspectionDate'])?.toString(),
       inspectionInterval:
           (json['muayeneAraligi'] ?? json['inspectionInterval'])?.toString(),
+      trafficInsuranceDate: json['trafikSigortasiBitis']?.toString(),
+      kaskoDate: json['kaskoBitis']?.toString(),
       maintenanceRecords: parsedRecords,
       history: parsedHistory,
     );
