@@ -35,6 +35,7 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
         v.km = result.kmNum!;
       }
     });
+    widget.onChanged?.call();
   }
 
   Future<void> _markInspectionDone() async {
@@ -99,8 +100,9 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
       ),
     );
 
-    if (confirmed == true) {
+       if (confirmed == true) {
       setState(() => v.lastInspectionDate = todayStr);
+      widget.onChanged?.call();
     }
   }
 
