@@ -1,34 +1,31 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import '../models/vehicle.dart';
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
 
-/// Firestore üzerinde saklama — Orman Muhasebe'deki gibi kullanıcı girişi (auth)
-/// yok, bu uygulamayı sadece sen kullanacağın için tek bir sabit belgede tutuluyor.
-///
-/// Saha koşullarında internetsiz çalışabilmesi için:
-///  - main.dart'ta Firestore'un cihaz içi önbelleği (persistence) açık
-///  - saveVehicles bilerek "gönder ve unut" (fire-and-forget) çalışır, ağ
-///    cevabını beklemez — bağlantı olmadan da UI hiç takılmadan devam eder
-class StorageService {
-  final _doc = FirebaseFirestore.instance.collection('app_data').doc('vehicles');
-
-  Future<List<Vehicle>> loadVehicles() async {
-    final doc = await _doc.get();
-    if (!doc.exists) return [];
-    final data = doc.data();
-    final list = data?['vehicles'] as List?;
-    if (list == null) return [];
-    return list
-        .map((e) => Vehicle.fromJson(Map<String, dynamic>.from(e as Map)))
-        .toList();
-  }
-
-  /// Bilerek await edilmiyor — internet olmasa bile UI beklemeden devam eder,
-  /// bağlantı geri geldiğinde Firestore kendi arka planda senkronize eder.
-  void saveVehicles(List<Vehicle> vehicles) {
-    _doc.set({
-      'vehicles': vehicles.map((v) => v.toJson()).toList(),
-    }).catchError((_) {
-      // Sessizce yut — offline'da normal, bağlantı gelince kendiliğinden senkronize olur
-    });
-  }
-}
+    <application
+        android:label="Araç Bakım"
+        android:name="${applicationName}"
+        android:icon="@mipmap/ic_launcher">
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:theme="@style/LaunchTheme"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+            android:hardwareAccelerated="true"
+            android:windowSoftInputMode="adjustResize">
+            <meta-data
+              android:name="io.flutter.embedding.android.NormalTheme"
+              android:resource="@style/NormalTheme"
+              />
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+        <meta-data
+            android:name="flutterEmbedding"
+            android:value="2" />
+    </application>
+</manifest>
