@@ -67,7 +67,9 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
   Future<void> _openDetail(Vehicle v) async {
     await Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => VehicleDetailScreen(vehicle: v)),
+      MaterialPageRoute(
+        builder: (_) => VehicleDetailScreen(vehicle: v, onChanged: _persist),
+      ),
     );
     // Detay sayfasında işlem eklenmiş/muayene güncellenmiş olabilir — kaydet ve yenile
     setState(() {});
