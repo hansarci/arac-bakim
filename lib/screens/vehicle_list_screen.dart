@@ -20,6 +20,10 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
   List<Vehicle> vehicles = [];
   bool _loading = true;
 
+  /// Yükleme başarısız olduysa true. Bu durumda kayıt YAPILMAZ; aksi halde
+  /// boş liste sunucudaki gerçek verinin üstüne yazılırdı.
+  bool _loadFailed = false;
+
   @override
   void initState() {
     super.initState();
@@ -28,23 +32,36 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
 
   Future<void> _load() async {
     List<Vehicle> list = [];
+    bool failed = false;
     try {
       list = await _storage.loadVehicles();
     } catch (e) {
-      // Veri okunurken bir sorun olsa bile uygulama sonsuza kadar yüklenir
-      // görünmesin — boş listeyle açılsın, sorun devam ederse görünür olsun.
       debugPrint('Araçlar yüklenirken hata: $e');
+      failed = true;
     }
+    if (!mounted) return;
     setState(() {
       vehicles = list;
+      _loadFailed = failed;
       _loading = false;
     });
+    if (failed) return;
     for (final v in vehicles) {
       await NotificationService.instance.scheduleInspectionReminders(v);
     }
   }
 
+  void _retry() {
+    setState(() {
+      _loading = true;
+      _loadFailed = false;
+    });
+    _load();
+  }
+
   void _persist() {
+    // Veri yüklenemediyse asla kaydetme — sunucudaki veriyi ezmeyelim.
+    if (_loadFailed) return;
     _storage.saveVehicles(vehicles); // fire-and-forget — internet gerekmez
     for (final v in vehicles) {
       NotificationService.instance.scheduleInspectionReminders(v);
@@ -97,58 +114,94 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
       body: SafeArea(
         child: _loading
             ? const Center(child: CircularProgressIndicator(color: AppColors.orange))
-            : Stack(
-                children: [
-                  Column(
+            : _loadFailed
+                ? _errorState()
+                : Stack(
                     children: [
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 22, 20, 14),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text('Araçlarım',
-                                style: TextStyle(
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.w800,
-                                    color: AppColors.text)),
-                            Container(
-                              width: 38,
-                              height: 38,
-                              decoration: BoxDecoration(
-                                color: AppColors.bgElev2,
-                                border: Border.all(color: AppColors.line),
-                                borderRadius: BorderRadius.circular(11),
-                              ),
-                              child: const Icon(Icons.search, color: AppColors.orange, size: 18),
+                      Column(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 22, 20, 14),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text('Araçlarım',
+                                    style: TextStyle(
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.w800,
+                                        color: AppColors.text)),
+                                Container(
+                                  width: 38,
+                                  height: 38,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.bgElev2,
+                                    border: Border.all(color: AppColors.line),
+                                    borderRadius: BorderRadius.circular(11),
+                                  ),
+                                  child: const Icon(Icons.search, color: AppColors.orange, size: 18),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
+                          ),
+                          const Divider(height: 1, color: AppColors.line),
+                          Expanded(
+                            child: vehicles.isEmpty
+                                ? _emptyState()
+                                : ListView(
+                                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+                                    children: [
+                                      for (final alert in alerts) _AlertBanner(data: alert),
+                                      for (final v in vehicles)
+                                        _VehicleCard(
+                                          vehicle: v,
+                                          onTap: () => _openDetail(v),
+                                        ),
+                                    ],
+                                  ),
+                          ),
+                        ],
                       ),
-                      const Divider(height: 1, color: AppColors.line),
-                      Expanded(
-                        child: vehicles.isEmpty
-                            ? _emptyState()
-                            : ListView(
-                                padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
-                                children: [
-                                  for (final alert in alerts) _AlertBanner(data: alert),
-                                  for (final v in vehicles)
-                                    _VehicleCard(
-                                      vehicle: v,
-                                      onTap: () => _openDetail(v),
-                                    ),
-                                ],
-                              ),
+                      Positioned(
+                        bottom: 26,
+                        right: 20,
+                        child: _Fab(onTap: _openAddVehicle),
                       ),
                     ],
                   ),
-                  Positioned(
-                    bottom: 26,
-                    right: 20,
-                    child: _Fab(onTap: _openAddVehicle),
-                  ),
-                ],
+      ),
+    );
+  }
+
+  Widget _errorState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.cloud_off, color: AppColors.orange, size: 36),
+            const SizedBox(height: 14),
+            const Text('Veriler yüklenemedi',
+                style: TextStyle(
+                    fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.text)),
+            const SizedBox(height: 6),
+            const Text(
+              'İnternet bağlantını kontrol edip tekrar dene. Veriler yüklenene kadar hiçbir şey kaydedilmez.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 13, color: AppColors.textMuted, height: 1.4),
+            ),
+            const SizedBox(height: 18),
+            ElevatedButton(
+              onPressed: _retry,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.orange,
+                foregroundColor: const Color(0xFF14201A),
+                padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
               ),
+              child: const Text('Tekrar dene', style: TextStyle(fontWeight: FontWeight.w700)),
+            ),
+          ],
+        ),
       ),
     );
   }
