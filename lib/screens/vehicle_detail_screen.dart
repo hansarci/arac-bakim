@@ -8,7 +8,11 @@ import '../widgets/add_action_sheet.dart';
 
 class VehicleDetailScreen extends StatefulWidget {
   final Vehicle vehicle;
-  const VehicleDetailScreen({super.key, required this.vehicle});
+
+  /// Detay ekranında veri değiştiğinde (işlem ekleme, muayene) hemen çağrılır;
+  /// kayıt geri tuşunu beklemeden yapılsın diye.
+  final VoidCallback? onChanged;
+  const VehicleDetailScreen({super.key, required this.vehicle, this.onChanged});
 
   @override
   State<VehicleDetailScreen> createState() => _VehicleDetailScreenState();
