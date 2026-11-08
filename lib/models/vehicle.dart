@@ -7,8 +7,12 @@
 /// Tüm zorunlu alanlarda '' / 0 gibi güvenli varsayılanlar var — eski veride
 /// beklenmedik şekilde eksik bir alan olsa bile uygulama çökmesin diye.
 
+/// Eskiden "Alt Takım" olarak kaydedilmiş kategoriler okunurken "Ön Takım"a
+/// çevrilir; kayıt bir sonraki kaydetmede otomatik olarak yeni adla yazılır.
+String _fixCategory(String c) => c.replaceAll('Alt Takım', 'Ön Takım');
+
 class HistoryItem {
-  String cat; // örn. "Motor", "Fren Sistemi", "Alt Takım / Rot"
+  String cat; // örn. "Motor", "Fren Sistemi", "Ön Takım / Rot"
   String sub; // yapılan işlem(ler), " / " ile ayrılmış
   int km; // işlem km/saat değeri (0 ise "—" gösterilir)
   String date; // GG/AA/YYYY
@@ -28,7 +32,7 @@ class HistoryItem {
       };
 
   factory HistoryItem.fromJson(Map<String, dynamic> json) => HistoryItem(
-        cat: (json['kategori'] ?? json['cat'] ?? '').toString(),
+        cat: _fixCategory((json['kategori'] ?? json['cat'] ?? '').toString()),
         sub: (json['aciklama'] ?? json['sub'] ?? '').toString(),
         km: (json['km'] as num?)?.toInt() ?? 0,
         date: (json['tarih'] ?? json['date'] ?? '—').toString(),
