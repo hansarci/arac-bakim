@@ -5,7 +5,9 @@ import '../theme/app_theme.dart';
 import '../utils/date_utils.dart';
 import '../utils/formatters.dart';
 import '../utils/maintenance_rules.dart';
+import '../services/pdf_report_service.dart';
 import '../widgets/add_action_sheet.dart';
+import '../widgets/pdf_options_sheet.dart';
 
 class VehicleDetailScreen extends StatefulWidget {
   final Vehicle vehicle;
@@ -20,6 +22,33 @@ class VehicleDetailScreen extends StatefulWidget {
 
 class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
   Vehicle get v => widget.vehicle;
+  bool _pdfBusy = false;
+
+  Future<void> _sharePdf() async {
+    if (_pdfBusy) return;
+    final opts = await showModalBottomSheet<PdfOptions>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => const PdfOptionsSheet(),
+    );
+    if (opts == null || !mounted) return;
+    setState(() => _pdfBusy = true);
+    try {
+      await PdfReportService.shareReport(
+        v,
+        includeDates: opts.dates,
+        includeHistory: opts.history,
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('PDF oluşturulamadı: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _pdfBusy = false);
+    }
+  }
 
   Future<void> _openAddAction() async {
     final result = await Navigator.push<ActionResult>(
@@ -134,19 +163,45 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
           children: [
             Column(
               children: [
-                // ---- Sabit üst kısım: geri, isim, plaka, istatistikler, tarih kartları ----
+                // ---- Sabit üst kısım: geri, PDF, isim, plaka, istatistikler, tarih kartları ----
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
-                  child: GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: const [
-                        Icon(Icons.arrow_back, size: 16, color: AppColors.textMuted),
-                        SizedBox(width: 10),
-                        Text('Araçlarım', style: TextStyle(fontSize: 13, color: AppColors.textMuted)),
-                      ],
-                    ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      GestureDetector(
+                        onTap: () => Navigator.pop(context),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: const [
+                            Icon(Icons.arrow_back, size: 16, color: AppColors.textMuted),
+                            SizedBox(width: 10),
+                            Text('Araçlarım',
+                                style: TextStyle(fontSize: 13, color: AppColors.textMuted)),
+                          ],
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: _sharePdf,
+                        child: Container(
+                          width: 38,
+                          height: 38,
+                          decoration: BoxDecoration(
+                            color: AppColors.bgElev2,
+                            border: Border.all(color: AppColors.line),
+                            borderRadius: BorderRadius.circular(11),
+                          ),
+                          child: _pdfBusy
+                              ? const Padding(
+                                  padding: EdgeInsets.all(10),
+                                  child: CircularProgressIndicator(
+                                      strokeWidth: 2, color: AppColors.orange),
+                                )
+                              : const Icon(Icons.picture_as_pdf_outlined,
+                                  color: AppColors.orange, size: 18),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 Container(
