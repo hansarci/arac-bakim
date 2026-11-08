@@ -10,7 +10,7 @@ const List<String> maintenanceCategories = [
   'Motor',
   'Yağ / Filtre',
   'Fren Sistemi',
-  'Alt Takım / Rot',
+  'Ön Takım / Rot',
   'Lastik / Jant',
   'Şanzıman',
   'Elektrik',
