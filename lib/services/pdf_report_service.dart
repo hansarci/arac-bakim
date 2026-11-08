@@ -317,10 +317,14 @@ class PdfReportService {
       margin: const pw.EdgeInsets.only(bottom: 12),
       padding: pw.EdgeInsets.only(left: isRight ? 10 : 0, right: isRight ? 0 : 10, bottom: 6),
       decoration: pw.BoxDecoration(
-        border: pw.Border(
-          left: isRight ? pw.BorderSide(color: _line, width: 1) : null,
-          bottom: pw.BorderSide(color: _red, width: 1.3), // yıl sonu çizgisi
-        ),
+        border: isRight
+            ? pw.Border(
+                left: pw.BorderSide(color: _line, width: 1),
+                bottom: pw.BorderSide(color: _red, width: 1.3), // yıl sonu çizgisi
+              )
+            : pw.Border(
+                bottom: pw.BorderSide(color: _red, width: 1.3), // yıl sonu çizgisi
+              ),
       ),
       child: pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
